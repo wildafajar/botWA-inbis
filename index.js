@@ -2,7 +2,7 @@ const {DisconnectReason, useMultiFileAuthState} = require("baileys");
 const makeWASocket = require("baileys").default;
 
 
-async function connection() {
+async function connect() {
     const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
     const socket = makeWASocket({
         printQRInTerminal: true,
@@ -21,10 +21,11 @@ async function connection() {
                 DisconnectReason.loggedOut;
 
             if (shouldReconnect) {
-                connection();
+                connect();
             }
         }
+
     });
 }
 
-connection();
+connect();
