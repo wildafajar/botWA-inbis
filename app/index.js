@@ -7,6 +7,7 @@ async function connect() {
     const socket = makeWASocket({
         printQRInTerminal: true,
         auth: state,
+
     });
 
     socket.ev.on("connection.update", async (update) => {
@@ -20,11 +21,25 @@ async function connect() {
                 lastDisconnect?.error?.output?.statusCode !==
                 DisconnectReason.loggedOut;
 
-            if (shouldReconnect) {
+            if (shouldReconnect)
+            {
                 connect();
+
             }
         }
 
+    });
+
+    socket.ev.on("creds.update", saveCreds);
+
+    // Add event listener for messages
+    socket.ev.on('messages.update', async (mek) => {
+        for (const message of mek) {
+            if (message.key.fromMe) continue;
+            if (message.message.conversation.toLowerCase() === 'hallo') {
+                await socket.sendMessage(message.key.remoteJid, 'hallo', { quoted: message });
+            }
+        }
     });
 }
 
