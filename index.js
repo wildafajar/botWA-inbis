@@ -1,13 +1,30 @@
-const { WAConnection } = require('@whiskeysockets/baileys');
+const {DisconnectReason, useMultiFileAuthState} = require("baileys");
+const makeWASocket = require("baileys").default;
 
-async function startBot() {
-    const conn = new WAConnection();
-    conn.on('qr', (qr) => {
-        console.log('Scan this QR code to log in:', qr);
+
+async function connection() {
+    const { state, saveCreds } = await useMultiFileAuthState("auth_info_baileys");
+    const socket = makeWASocket({
+        printQRInTerminal: true,
+        auth: state,
     });
 
-    await conn.connect();
-    console.log('Bot is connected!');
+    socket.ev.on("connection.update", async (update) => {
+        const { connection, lastDisconnect, qr} = update;
+        if (qr) {
+            console.log(qr);
+        }
+
+        if (connection === "close") {
+            const shouldReconnect =
+                lastDisconnect?.error?.output?.statusCode !==
+                DisconnectReason.loggedOut;
+
+            if (shouldReconnect) {
+                connection();
+            }
+        }
+    });
 }
 
-startBot();
+connection();
